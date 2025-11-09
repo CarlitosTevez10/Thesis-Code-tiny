@@ -1,0 +1,4 @@
+datasets/**
+!datasets/**/
+!datasets/**/shard-*.pt
+!datasets/**/README.md
