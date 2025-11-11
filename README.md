@@ -32,7 +32,7 @@ to pull SHARDS
 ```bash
 git lfs pull
 ```
-Alternatively to download shards:
+**Alternatively** to download shards:
 ```bash
 cd ./datasets
 python dataset_generator.py
