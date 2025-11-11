@@ -27,8 +27,11 @@ parser.add_argument("--skip-lr-tuner", action="store_true",
 parser.add_argument("--no-show-plots", action="store_true",
                help="Don't show plots")
                '''
+'''
 parser.add_argument("--no-save-images", action="store_true",
                help="Don't save images")
+               '''
+
 parser.add_argument(
      "--load-model",
     type=str,                    
@@ -305,6 +308,8 @@ def train(net, train_loader, epochs, learning_rate, momentum, weight_decay):
             loss = loss_fn(out, labels) #/ grad_accum                        # logits expected; no softmax
             loss.backward()
 
+            torch.nn.utils.clip_grad_value_(net.parameters(), clip_value=1)
+
             if (step + 1) % grad_accum == 0:
                 optimizer.step()
                 optimizer.zero_grad(set_to_none=True)
@@ -387,14 +392,14 @@ def train(net, train_loader, epochs, learning_rate, momentum, weight_decay):
     else:
         print("val_acc_list is empty; nothing to plot.")
 
-    write_torchinfo(net, logs_dir + "mem_log.txt", input_size=(1, 3, 128, 128))
+    write_torchinfo(net, logs_dir + "mem_log.txt", input_size=(1, 3, 224, 224))
 
     # EVALUATE ON FINEGRAINED AGAIN
     print("Evaluating the model on the Finegrained Contexts")
     loaders.evaluate_finegrained(net,plots_dir + "finegrained_histogram_post_FT")
     # SIMULATED TRAINING ON THE DEVICE
     print("Simulating training on device")
-    train_ODL(net,epochs= 5,learning_rate = 0.001)
+    train_ODL(net,epochs= 1,learning_rate = 0.001)
     print("Evaluating the model on the Finegrained Contexts")
     loaders.evaluate_finegrained(net.float(),plots_dir + "finegrained_histogram_post_ODL")
 
@@ -441,7 +446,14 @@ def hyperparameter_explorator(net,epochs,lr_list):
     for lr in lr_list: ...
         train(net=models.MobileNetFT,train_loader=loaders.WV_train_ld,epochs=1,learning_rate=lr,momentum = 0.9, weight_decay = 1e-4 )
 '''
-train(net=models.MobileNetLP,train_loader=loaders.WV_train_ld,epochs=2,learning_rate=0.015,momentum = 0, weight_decay = 0 )
+if load_path:
+    net = models.FrozenBackboneMobileNet(LoadModel(models.MobileNet_no_pre,load_path))
+    net.name = "MobileNetV1_LP"                                     
+    train(net=net,train_loader=loaders.WV_train_ld,epochs=1,learning_rate=0.005,momentum = 0.9, weight_decay = 1e-4 )
+
+
+else:
+    train(net=models.MobileNetLP,train_loader=loaders.WV_train_ld,epochs=1,learning_rate=0.01,momentum = 0.9, weight_decay = 1e-4 )
 
 
 
