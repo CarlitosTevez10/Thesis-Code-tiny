@@ -15,6 +15,8 @@ python -m pip install torchinfo
 
 # Tutorial
 
+*Video Tutorial:* [link text](https://youtu.be/AlzMyRC5Ju8)
+
 #Clone the REPO
 
 ```bash
