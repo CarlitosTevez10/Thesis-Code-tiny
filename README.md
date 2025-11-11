@@ -30,7 +30,7 @@ conda env create -f environment.yml
 ```
 Activate your chosen environment es. :
 ```bash
-conda activate myenv
+conda activate training
 ```
 To download shards:
 ```bash
