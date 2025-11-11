@@ -20,6 +20,7 @@ python -m pip install torchinfo
 ```bash
 git clone https://github.com/CarlitosTevez10/Thesis-Code-tiny.git
 ```
+
 create new conda environment:
 ```bash
 conda env create -f environment.yml
