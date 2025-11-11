@@ -18,7 +18,10 @@ python -m pip install torchinfo
 #Clone the REPO
 
 ```bash
-git clone https://github.com/CarlitosTevez10/Thesis-Code-tiny.git
+GIT_LFS_SKIP_SMUDGE=1 git clone --filter=blob:none --depth=1 \
+  https://github.com/CarlitosTevez10/Thesis-Code-tiny.git Thesis-Code-tiny-tutorial
+cd Thesis-Code-tiny-tutorial
+
 ```
 
 create new conda environment:
