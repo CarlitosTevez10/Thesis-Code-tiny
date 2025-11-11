@@ -326,11 +326,11 @@ WakeVision_val   = FastWVCacheDataset("./datasets/wv_val_cache_224",name = "Wake
 WakeVision_test  = FastWVCacheDataset("./datasets/wv_test_cache_224",name = "WakeVision_test" )
 # ADD FINEGRAINED DATASETS
 
-WakeVision_far = WakeVision_train = FastWVCacheDataset("./datasets/wv_train_cache_224",cond={"far": 1},name = "WakeVision_far")
+WakeVision_fg =  FastWVCacheDataset("./datasets/wv_val_cache_224",cond = {"far":1},name = "WakeVision_fg")
 
 # Sampler
 
-sampler = ShardGroupedBatchSampler(WakeVision_train, batch_size=16, drop_last=True,
+sampler = ShardGroupedBatchSampler(WakeVision_train, batch_size=32, drop_last=True,
                                    shuffle_shards=True, max_shards_per_batch=1)
 
 
@@ -363,11 +363,11 @@ WV_val_ld = DataLoader(WakeVision_val, batch_size=16, shuffle=False,
 
 WV_val_ld.name = "WakeVision_val"
 
-mini_dataset_idx = range(0,100)  
+mini_dataset_idx = range(0,400)  
 
-mini_WV_train = Subset(WakeVision_far,mini_dataset_idx)
+mini_WV_train = Subset(WakeVision_fg,mini_dataset_idx)
 mini_WV_train_ld = DataLoader(mini_WV_train, batch_size=1, shuffle=True,  num_workers=1,pin_memory = pin_memory)
-
+'''
 def evaluate_finegrained(model,save_path, cache_dir = "./datasets/wv_val_cache_224", batch_size=16, device="cpu"):
     ds = FastWVCacheDataset(cache_dir)
     dl = DataLoader(ds, batch_size=batch_size, shuffle=False,
@@ -400,11 +400,11 @@ def evaluate_finegrained(model,save_path, cache_dir = "./datasets/wv_val_cache_2
     acc = (tp.float() / torch.clamp(tot, min=1)).numpy()
 
     df = pd.DataFrame({"tag": ds.fg_keys, "n": tot.numpy(), "acc": acc}).sort_values("tag")
-    df.to_csv(save_path + ".csv", index=False)
+    df.to_csv(save_path + ".csv", index=True)
 
     # sanity prints
     print("supported tags:", int((df["n"] > 0).sum()), "/", K)
-    print(df.query("n>0").sort_values("n", ascending=False).head(10))
+    print(df.query("n>0").sort_values("n", ascending=False).head(18))
 
     # plot only supported tags
     df_plot = df[df["n"] > 0].copy()
@@ -423,10 +423,132 @@ def evaluate_finegrained(model,save_path, cache_dir = "./datasets/wv_val_cache_2
     plt.tight_layout()
     plt.savefig(save_path+".png", dpi=160)
     return acc_all, df
-
+'''
 # add single batch dataloaders, use subset
 
 
+def evaluate_finegrained(
+    model,
+    save_path,
+    cache_dir="./datasets/wv_test_cache_224",
+    batch_size=16,
+    device="cpu",
+    num_workers=1,
+    pin_memory=None,
+    persistent_workers=True,
+):
+    ds = FastWVCacheDataset(cache_dir)
+    assert len(getattr(ds, "fg_keys", [])) > 0, "fg_keys empty"
+    K = len(ds.fg_keys)
+
+    if pin_memory is None:
+        pin_memory = str(device).startswith("cuda")
+
+    dl = DataLoader(
+        ds,
+        batch_size=batch_size,
+        shuffle=False,
+        num_workers=num_workers,
+        pin_memory=pin_memory,
+        persistent_workers=persistent_workers and num_workers > 0,
+        collate_fn=collate_xy,
+    )
+
+    model.to(device).eval()
+
+    tp = torch.zeros(K, dtype=torch.long)
+    tot = torch.zeros(K, dtype=torch.long)
+    tp_all = 0
+    tot_all = 0
+
+    # dataset-label balance (ground truth)
+    gt_person = 0
+    gt_noperson = 0
+    gt_unknown = 0  # labels not in {0,1}
+
+    use_amp = str(device).startswith("cuda")
+    autocast_dtype = torch.bfloat16 if torch.cuda.is_available() else None
+
+    with torch.inference_mode():
+        ctx = torch.autocast(device_type="cuda", dtype=autocast_dtype) if use_amp else torch.cuda.amp.autocast(enabled=False)
+        with ctx:
+            for x, y, fg, _ in dl:
+                x = x.to(device, non_blocking=True)
+                y = y.to(device, non_blocking=True)
+
+                # count balance from labels only
+                m0 = (y == 0)
+                m1 = (y == 1)
+                mu = ~(m0 | m1)
+                gt_noperson += int(m0.sum())
+                gt_person   += int(m1.sum())
+                gt_unknown  += int(mu.sum())
+
+                # inference for fine-grained stats
+                logits = model(x)
+                if logits.ndim != 2 or logits.size(0) != y.size(0):
+                    raise RuntimeError(f"Bad model output shape {tuple(logits.shape)} for batch size {y.size(0)}")
+
+                pred = logits.argmax(dim=1)
+                correct = (pred == y)
+                tp_all += int(correct.sum())
+                tot_all += int(y.numel())
+
+                fg_bool = fg.bool()  # CPU [B,K]
+                tot += fg_bool.sum(0).to(torch.long)
+                tp  += (correct.cpu().unsqueeze(1) & fg_bool).sum(0).to(torch.long)
+
+    acc_all = tp_all / max(1, tot_all)
+    acc = (tp.float() / torch.clamp(tot, min=1)).numpy()
+
+    df = pd.DataFrame({"tag": ds.fg_keys, "n": tot.numpy(), "acc": acc}).sort_values("tag")
+    df.to_csv(save_path + ".csv", index=False)
+
+    supported = int((df["n"] > 0).sum())
+    print("supported tags:", supported, "/", K)
+    if supported:
+        print(df.query("n>0").sort_values("n", ascending=False).head(18))
+
+    # fine-grained accuracy plot
+    df_plot = df[df["n"] > 0].copy()
+    if df_plot.empty:
+        raise ValueError("All fine-grained supports are zero. Your cache wrote fg==0 for every sample.")
+
+    plt.figure(figsize=(12, 6))
+    plt.bar(df_plot["tag"].astype(str), df_plot["acc"].astype(float))
+    plt.ylim(0, 1)
+    plt.xticks(rotation=60, ha="right")
+    plt.ylabel("Accuracy")
+    plt.title(f"Wake Vision test fine-grained accuracy (overall={acc_all:.3f})")
+    plt.tight_layout()
+    plt.savefig(save_path + ".png", dpi=160)
+    plt.close()
+
+    # person/no-person balance from labels
+    n_samples = gt_person + gt_noperson + gt_unknown
+    n_samples = max(n_samples, 1)
+    df_bal = pd.DataFrame(
+        {
+            "category": ["person", "no_person", "unknown"],
+            "count": [gt_person, gt_noperson, gt_unknown],
+            "pct": [gt_person / n_samples, gt_noperson / n_samples, gt_unknown / n_samples],
+        }
+    )
+    df_bal.to_csv(save_path + "_balance.csv", index=False)
+
+    print("dataset label balance (ground truth):")
+    print(df_bal.sort_values("count", ascending=False))
+
+    plt.figure(figsize=(6, 4))
+    plt.bar(df_bal["category"], df_bal["pct"])
+    plt.ylim(0, 1)
+    plt.ylabel("Fraction of samples")
+    plt.title("Wake Vision person vs no-person balance (labels)")
+    plt.tight_layout()
+    plt.savefig(save_path + "_balance.png", dpi=160)
+    plt.close()
+
+    return acc_all, df, df_bal
 
 
 
