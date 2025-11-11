@@ -20,10 +20,6 @@ python -m pip install torchinfo
 ```bash
 git clone https://github.com/CarlitosTevez10/Thesis-Code-tiny.git
 ```
-to pull SHARDS
-```bash
-git lfs pull
-```
 create new conda environment:
 ```bash
 conda env create -f environment.yml
@@ -32,11 +28,17 @@ Activate your chosen environment es. :
 ```bash
 conda activate training
 ```
-To download shards:
+to pull SHARDS
+```bash
+git lfs pull
+```
+Alternatively to download shards:
 ```bash
 cd ./datasets
 python dataset_generator.py
 ```
-
-
+to run the finetuner.py with default arguments simply
+```bash
+python finetuner.py
+```
 
