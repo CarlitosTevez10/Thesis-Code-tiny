@@ -1,0 +1,122 @@
+Initializing Dataset WakeVision_train_quality, this will take a few minutes
+Initializing Dataset WakeVision_val
+Initializing Dataset WakeVision_test
+Initializing Dataset WakeVision_fg
+Evaluating the model on the Finegrained Contexts
+Initializing Dataset Wake Vision
+/home/mark/Prelim/Thesis-Code-tiny-clean/loaders.py:473: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  ctx = torch.autocast(device_type="cuda", dtype=autocast_dtype) if use_amp else torch.cuda.amp.autocast(enabled=False)
+supported tags: 18 / 18
+                         tag      n       acc
+17                 body_part  20000  0.522750
+12           normal_lighting  15367  0.520206
+16  non-person_non-depiction   9275  0.127116
+7                       near   5946  0.910528
+11                      dark   3361  0.565010
+8            medium_distance   2400  0.950417
+3                 middle_age   2348  0.916525
+5             gender_unknown   1727  0.925883
+1         predominantly_male   1372  0.929300
+6                age_unknown   1318  0.952959
+10                    bright   1272  0.441824
+9                        far    943  0.956522
+0       predominantly_female    801  0.880150
+13                 depiction    754  0.042440
+15      non-person_depiction    378  0.055556
+14          person_depiction    376  0.029255
+2                      young    331  0.803625
+4                      older    102  0.862745
+dataset label balance (ground truth):
+    category  count      pct
+1  no_person  10029  0.50145
+0     person   9971  0.49855
+2    unknown      0  0.00000
+Initial Test
+Testing on WakeVision_test, imgs = 20000
+Test: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 1250/1250 [00:32<00:00, 37.94it/s, acc=52.3, loss=0.916]
+Test Loss: 0.9160
+Test Accuracy: 52.27%
+Initial Validation
+Validating on WakeVision_val, imgs = 10000
+Val: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 625/625 [00:13<00:00, 44.99it/s, acc=51.9, loss=0.928]
+Val Loss: 0.9285
+Val Accuracy: 51.94%
+Saving initial checkpoint
+Training MobileNetV1_025_Linear_Probe on WakeVision_train_quality dataset, for Epochs: 1, with  bs=32, eff_bs=32, imgs=9984, res = 224x224x3 lr=0.01, mom=0.9, wd=0.0001
+epoch 0 step 50 image = 1568 loss=0.5465 imgs/s=192
+epoch 0 step 100 image = 3168 loss=0.5114 imgs/s=2216
+epoch 0 step 150 image = 4768 loss=0.4597 imgs/s=1580
+epoch 0 step 200 image = 6368 loss=0.3508 imgs/s=2230
+epoch 0 step 250 image = 7968 loss=0.5402 imgs/s=2238
+epoch 0 step 300 image = 9568 loss=0.9544 imgs/s=714
+Saving checkpoint for epoch 0
+Validating on WakeVision_val, imgs = 10000
+Val: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 625/625 [00:13<00:00, 44.65it/s, acc=77.3, loss=0.602]
+Val Loss: 0.6018
+Val Accuracy: 77.33%
+Total training time: 0.47 minutes
+Final Test
+Testing on WakeVision_test, imgs = 20000
+Test: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 1250/1250 [00:30<00:00, 41.55it/s, acc=77.8, loss=0.581]
+Test Loss: 0.5806
+Test Accuracy: 77.76%
+Saving plots
+Evaluating the model on the Finegrained Contexts
+Initializing Dataset Wake Vision
+/home/mark/Prelim/Thesis-Code-tiny-clean/loaders.py:473: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  ctx = torch.autocast(device_type="cuda", dtype=autocast_dtype) if use_amp else torch.cuda.amp.autocast(enabled=False)
+supported tags: 18 / 18
+                         tag      n       acc
+17                 body_part  20000  0.777600
+12           normal_lighting  15367  0.779332
+16  non-person_non-depiction   9275  0.719677
+7                       near   5946  0.953078
+11                      dark   3361  0.760785
+8            medium_distance   2400  0.864583
+3                 middle_age   2348  0.920784
+5             gender_unknown   1727  0.855819
+1         predominantly_male   1372  0.907434
+6                age_unknown   1318  0.819423
+10                    bright   1272  0.801101
+9                        far    943  0.563097
+0       predominantly_female    801  0.940075
+13                 depiction    754  0.484085
+15      non-person_depiction    378  0.629630
+14          person_depiction    376  0.337766
+2                      young    331  0.957704
+4                      older    102  0.901961
+dataset label balance (ground truth):
+    category  count      pct
+1  no_person  10029  0.50145
+0     person   9971  0.49855
+2    unknown      0  0.00000
+Simulating training on device
+Evaluating the model on the Finegrained Contexts
+Initializing Dataset Wake Vision
+/home/mark/Prelim/Thesis-Code-tiny-clean/loaders.py:473: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  ctx = torch.autocast(device_type="cuda", dtype=autocast_dtype) if use_amp else torch.cuda.amp.autocast(enabled=False)
+supported tags: 18 / 18
+                         tag      n       acc
+17                 body_part  20000  0.745950
+12           normal_lighting  15367  0.749008
+16  non-person_non-depiction   9275  0.648518
+7                       near   5946  0.934914
+11                      dark   3361  0.733413
+8            medium_distance   2400  0.828333
+3                 middle_age   2348  0.899915
+5             gender_unknown   1727  0.843080
+1         predominantly_male   1372  0.888484
+6                age_unknown   1318  0.812595
+10                    bright   1272  0.742138
+9                        far    943  0.663839
+0       predominantly_female    801  0.931336
+13                 depiction    754  0.417772
+15      non-person_depiction    378  0.526455
+14          person_depiction    376  0.308511
+2                      young    331  0.936556
+4                      older    102  0.882353
+dataset label balance (ground truth):
+    category  count      pct
+1  no_person  10029  0.50145
+0     person   9971  0.49855
+2    unknown      0  0.00000
