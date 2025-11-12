@@ -47,4 +47,5 @@ to run the finetuner.py with default arguments simply
 ```bash
 python finetuner.py
 ```
+Once the program has finished running, you will find the results under the **/training/Results** directory.
 
